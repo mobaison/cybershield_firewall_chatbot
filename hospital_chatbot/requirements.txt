@@ -1,0 +1,22 @@
+# requirements.txt
+# ─────────────────────────────────────────────
+# NO Google SDK needed — we call the REST API
+# directly which avoids all v1beta/v1 routing
+# issues in the SDK packages.
+# ─────────────────────────────────────────────
+
+# Web framework
+flask==3.0.0
+flask-cors==4.0.0
+
+# HTTP client (REST calls to Google APIs)
+requests>=2.31.0
+
+# Vector store
+faiss-cpu>=1.9.0
+
+# Numerical ops (required by FAISS)
+numpy==1.26.4
+
+# Environment variables
+python-dotenv==1.0.1

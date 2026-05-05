@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedAssist — City General Hospital</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A3C5E;--blue:#1A5276;--blue-l:#2E86C1;--teal:#148F77;
+  --green:#1E8449;--red:#C0392B;--orange:#D35400;--yellow:#F39C12;
+  --gray-bg:#F0F4F8;--white:#FFF;--gray-1:#F8F9FA;--gray-2:#E9ECEF;
+  --gray-4:#CED4DA;--gray-6:#6C757D;--text:#2C3E50;
+  --bot-bg:#E8F4FD;--user-bg:#1A5276;--radius:18px;
+  --shadow:0 4px 20px rgba(0,0,0,.12);
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-bg);
+  color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--navy),var(--blue-l));
+  color:#fff;padding:12px 18px;display:flex;align-items:center;
+  justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.h-left{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;background:#fff;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:20px}
+.h-title h1{font-size:1rem;font-weight:700}
+.h-title p{font-size:.72rem;opacity:.85}
+.h-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+  border-radius:20px;padding:3px 10px;font-size:.68rem;white-space:nowrap}
+.dot{width:9px;height:9px;background:#2ecc71;border-radius:50%;
+  animation:pulse 2s infinite;display:inline-block;margin-right:5px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(46,204,113,.4)}
+  50%{box-shadow:0 0 0 5px rgba(46,204,113,0)}}
+
+/* CHIPS */
+.chips{background:#fff;padding:8px 14px;display:flex;gap:7px;
+  overflow-x:auto;border-bottom:1px solid var(--gray-2);scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{background:var(--gray-1);border:1px solid var(--gray-4);border-radius:20px;
+  padding:5px 13px;font-size:.74rem;cursor:pointer;white-space:nowrap;
+  transition:all .2s;color:var(--blue);font-weight:500}
+.chip:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* CHAT */
+.chat{flex:1;overflow-y:auto;padding:16px 14px;
+  display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+.msg{display:flex;gap:9px;max-width:90%;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg.bot{align-self:flex-start}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:16px;flex-shrink:0}
+.bot .av{background:var(--blue)}
+.user .av{background:var(--green)}
+
+.bubble{padding:11px 15px;border-radius:var(--radius);line-height:1.65;
+  font-size:.88rem;max-width:100%}
+.bot  .bubble{background:var(--bot-bg);border-top-left-radius:4px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.user .bubble{background:var(--user-bg);border-top-right-radius:4px;color:#fff}
+.bubble.blocked{background:#fdf2f2;border:1px solid #f5c6cb;border-top-left-radius:4px}
+.bubble.redirect{background:#fff8e1;border:1px solid #ffe082;border-top-left-radius:4px}
+.bubble.caution{background:#fff3e0;border:1px solid #ffcc80;border-top-left-radius:4px}
+
+/* Triage card */
+.triage-card{background:#fff;border-radius:12px;padding:14px;
+  margin-top:8px;border-left:4px solid var(--blue)}
+.triage-card.RED{border-left-color:var(--red)}
+.triage-card.YELLOW{border-left-color:var(--yellow)}
+.triage-card.GREEN{border-left-color:var(--green)}
+.triage-header{font-weight:700;font-size:.9rem;margin-bottom:8px}
+.triage-row{display:flex;gap:8px;margin-bottom:5px;font-size:.82rem}
+.triage-label{font-weight:600;color:var(--gray-6);min-width:80px}
+
+.fw-tag{display:inline-flex;align-items:center;gap:4px;font-size:.66rem;
+  font-weight:700;letter-spacing:.03em;border-radius:10px;
+  padding:2px 8px;margin-bottom:6px}
+.fw-tag.block{background:var(--red);color:#fff}
+.fw-tag.redirect{background:var(--orange);color:#fff}
+.fw-tag.caution{background:var(--yellow);color:#fff}
+
+.sources{margin-top:7px;font-size:.7rem;color:var(--gray-6);
+  border-top:1px dashed var(--gray-4);padding-top:5px}
+.src-tag{display:inline-block;background:var(--gray-2);border-radius:10px;
+  padding:2px 7px;margin:2px 2px 0 0;font-size:.67rem}
+.prov-tag{margin-top:4px;font-size:.63rem;color:#aaa}
+
+/* Risk meter */
+.risk-meter{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:.68rem;color:var(--gray-6)}
+.risk-bar{flex:1;height:4px;background:var(--gray-2);border-radius:2px;overflow:hidden}
+.risk-fill{height:100%;border-radius:2px;transition:width .3s}
+
+.warn-banner{background:#fff3cd;border:1px solid #ffc107;border-radius:7px;
+  padding:5px 11px;font-size:.76rem;color:#856404;margin-top:5px}
+
+/* Typing */
+.typing{display:flex;gap:5px;align-items:center;padding:12px 15px}
+.td{width:7px;height:7px;background:var(--gray-6);border-radius:50%;animation:bounce 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+
+/* Welcome */
+.welcome{background:#fff;border-radius:14px;padding:20px;text-align:center;
+  box-shadow:var(--shadow);align-self:center;max-width:400px;width:100%}
+.welcome .icon{font-size:2.8rem;margin-bottom:8px}
+.welcome h2{color:var(--blue);font-size:1.05rem;margin-bottom:7px}
+.welcome p{color:var(--gray-6);font-size:.83rem;line-height:1.55}
+.feature-pills{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:10px}
+.fpill{background:var(--gray-1);border:1px solid var(--gray-2);border-radius:20px;
+  padding:3px 10px;font-size:.68rem;color:var(--gray-6)}
+
+/* Bubble content */
+.bubble ul{margin:7px 0 4px 16px}.bubble li{margin-bottom:3px}
+.bubble strong{font-weight:600}.bubble p{margin-bottom:5px}
+
+/* Input */
+.input-area{background:#fff;border-top:1px solid var(--gray-2);
+  padding:11px 14px;display:flex;gap:9px;align-items:flex-end;
+  box-shadow:0 -2px 8px rgba(0,0,0,.06)}
+textarea{flex:1;border:1.5px solid var(--gray-4);border-radius:22px;
+  padding:9px 16px;font-size:.88rem;font-family:inherit;resize:none;
+  min-height:42px;max-height:110px;outline:none;transition:border-color .2s}
+textarea:focus{border-color:var(--blue-l)}
+.send-btn{width:42px;height:42px;border-radius:50%;border:none;
+  background:var(--blue);color:#fff;font-size:17px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0}
+.send-btn:hover{background:var(--blue-l);transform:scale(1.06)}
+.send-btn:disabled{background:var(--gray-4);cursor:not-allowed;transform:none}
+.clear-btn{background:none;border:1.5px solid var(--gray-4);border-radius:18px;
+  padding:7px 12px;font-size:.74rem;color:var(--gray-6);cursor:pointer;transition:all .2s}
+.clear-btn:hover{border-color:var(--red);color:var(--red)}
+.emg{background:#c0392b;color:#fff;text-align:center;font-size:.72rem;
+  padding:4px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="emg">🚨 Emergency? Call <strong>108</strong> or <strong>+1-800-HOSPITAL</strong></div>
+
+<header class="header">
+  <div class="h-left">
+    <div class="logo">🏥</div>
+    <div class="h-title"><h1>City General Hospital</h1><p>MedAssist AI</p></div>
+  </div>
+  <div class="h-right">
+    <div class="badge">🛡️ 7-Layer Firewall</div>
+    <div class="badge">⚡ Hybrid RAG</div>
+    <div class="badge" id="provBadge">🤖 Loading...</div>
+    <div><span class="dot"></span><span style="font-size:.74rem;opacity:.9">Online</span></div>
+  </div>
+</header>
+
+<div class="chips">
+  <button class="chip" onclick="q('What are the OPD timings?')">🕐 Timings</button>
+  <button class="chip" onclick="q('What are consultation fees?')">💰 Fees</button>
+  <button class="chip" onclick="q('How do I book an appointment?')">📅 Book</button>
+  <button class="chip" onclick="q('I have chest pain and shortness of breath')">🫀 Symptom Check</button>
+  <button class="chip" onclick="q('I have a headache for 3 days with fever')">🤒 Headache+Fever</button>
+  <button class="chip" onclick="q('What departments does the hospital have?')">🏥 Departments</button>
+  <button class="chip" onclick="q('Do you accept health insurance?')">🛡️ Insurance</button>
+  <button class="chip" onclick="q('What is diabetes and how is it treated?')">💊 Diabetes</button>
+  <button class="chip" onclick="q('What are the emergency contact numbers?')">🚨 Emergency</button>
+</div>
+
+<div class="chat" id="chat">
+  <div class="welcome" id="welcome">
+    <div class="icon">🩺</div>
+    <h2>Hello! I'm MedAssist</h2>
+    <p>Your AI health assistant for City General Hospital.<br>
+    Ask about doctors, timings, fees, appointments, or describe your symptoms for a triage assessment.</p>
+    <div class="feature-pills">
+      <span class="fpill">⚡ Hybrid Search</span>
+      <span class="fpill">🧠 Smart Memory</span>
+      <span class="fpill">🏥 Symptom Triage</span>
+      <span class="fpill">🛡️ 7-Layer Firewall</span>
+    </div>
+  </div>
+</div>
+
+<div class="input-area">
+  <button class="clear-btn" onclick="clearChat()">🗑️ Clear</button>
+  <textarea id="inp" rows="1" placeholder="Ask about timings, fees, doctors, or describe symptoms..."
+    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
+    oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px'"></textarea>
+  <button class="send-btn" id="sendBtn" onclick="send()">➤</button>
+</div>
+
+<script>
+const chat    = document.getElementById('chat');
+const inp     = document.getElementById('inp');
+const sendBtn = document.getElementById('sendBtn');
+const welcome = document.getElementById('welcome');
+let first     = true;
+
+// Load provider status on start
+fetch('/api/health').then(r=>r.json()).then(d=>{
+  const gen = d.providers?.generation;
+  if(gen){
+    const m = gen.groq_model || gen.primary || 'AI';
+    document.getElementById('provBadge').textContent =
+      gen.primary === 'groq' ? `⚡ ${m}` : `🔷 Gemini`;
+  }
+}).catch(()=>{});
+
+function q(text){ inp.value = text; send(); }
+
+async function send(){
+  const text = inp.value.trim();
+  if(!text) return;
+  if(first){ welcome.style.display='none'; first=false; }
+  addMsg('user', text);
+  inp.value=''; inp.style.height='auto';
+  const tid = showTyping();
+  sendBtn.disabled = true;
+
+  try{
+    const r    = await fetch('/api/chat',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:text})});
+    const data = await r.json();
+    removeTyping(tid);
+
+    if(data.blocked){
+      addBlocked(data.response, data.block_layer, data.action, data.risk_score);
+    } else {
+      // Check if triage response
+      if(data.triage){
+        addTriageMsg(data.response, data.triage, data.sources);
+      } else {
+        addBotMsg(data.response, data.sources, data.provider,
+                  data.risk_score, data.action === 'caution');
+      }
+      if(data.warning) addWarning(data.warning);
+      // Update provider badge
+      if(data.provider){
+        const icons = {groq:'⚡ Groq',gemini:'🔷 Gemini',
+                       triage:'🏥 Triage',error:'❌ Error'};
+        document.getElementById('provBadge').textContent =
+          icons[data.provider] || data.provider;
+      }
+    }
+  }catch(e){
+    removeTyping(tid);
+    addBotMsg('⚠️ Connection error. Please call +1-800-HOSPITAL.',[]);
+  }
+  sendBtn.disabled = false;
+  inp.focus();
+}
+
+function addMsg(role, text){
+  const d = document.createElement('div');
+  d.className = `msg ${role}`;
+  const av = document.createElement('div');
+  av.className = 'av';
+  av.textContent = role === 'bot' ? '🏥' : '👤';
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.innerHTML = fmt(text);
+  d.appendChild(av); d.appendChild(b);
+  chat.appendChild(d); scroll();
+  return b;
+}
+
+function addBotMsg(text, sources=[], provider='', risk=0, caution=false){
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  const av = document.createElement('div');
+  av.className = 'av'; av.textContent = '🏥';
+  const b = document.createElement('div');
+  b.className = 'bubble' + (caution ? ' caution' : '');
+  b.innerHTML = fmt(text);
+  if(caution){
+    const ct = document.createElement('div');
+    ct.className = 'fw-tag caution';
+    ct.textContent = '⚠️ CAUTION';
+    b.prepend(ct);
+  }
+  if(sources && sources.length){
+    const s = document.createElement('div');
+    s.className = 'sources';
+    s.innerHTML = '📎 ' + sources.map(x=>`<span class="src-tag">${x}</span>`).join('');
+    b.appendChild(s);
+  }
+  if(provider){
+    const pv = document.createElement('div');
+    pv.className = 'prov-tag';
+    pv.textContent = {groq:'⚡ Groq (llama)',gemini:'🔷 Gemini',
+                      error:'❌ Error'}[provider] || provider;
+    b.appendChild(pv);
+  }
+  if(risk > 0.1){
+    const rm = document.createElement('div');
+    rm.className = 'risk-meter';
+    rm.innerHTML = `<span>Risk</span>
+      <div class="risk-bar">
+        <div class="risk-fill" style="width:${Math.round(risk*100)}%;
+          background:${risk<.35?'#27ae60':risk<.65?'#f39c12':'#e74c3c'}"></div>
+      </div>
+      <span>${Math.round(risk*100)}%</span>`;
+    b.appendChild(rm);
+  }
+  d.appendChild(av); d.appendChild(b);
+  chat.appendChild(d); scroll();
+}
+
+function addTriageMsg(text, triage, sources=[]){
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  const av = document.createElement('div');
+  av.className = 'av'; av.textContent = '🏥';
+  av.style.background = triage.severity==='RED'?'#c0392b':
+                         triage.severity==='YELLOW'?'#f39c12':'#1e8449';
+  const b = document.createElement('div');
+  b.className = 'bubble';
+
+  const sev = triage.severity || 'GREEN';
+  const sevIcon = {RED:'🔴',YELLOW:'🟡',GREEN:'🟢'}[sev] || '🟢';
+
+  // Triage card
+  const card = document.createElement('div');
+  card.className = `triage-card ${sev}`;
+  card.innerHTML = `
+    <div class="triage-header">${sevIcon} Triage: ${sev} — ${triage.urgency||''}</div>
+    <div class="triage-row"><span class="triage-label">Department</span><span>${triage.department||''}</span></div>
+    <div class="triage-row"><span class="triage-label">Summary</span><span>${triage.summary||''}</span></div>
+    <div class="triage-row"><span class="triage-label">Advice</span><span>${triage.advice||''}</span></div>
+    ${triage.followup_q?`<div class="triage-row" style="margin-top:8px;color:#666;font-style:italic">💬 ${triage.followup_q}</div>`:''}
+    <div style="margin-top:8px;font-size:.7rem;color:#888">${triage.disclaimer||''}</div>
+  `;
+  b.appendChild(card);
+
+  if(sources && sources.length){
+    const s = document.createElement('div');
+    s.className='sources';
+    s.innerHTML='📎 '+sources.map(x=>`<span class="src-tag">${x}</span>`).join('');
+    b.appendChild(s);
+  }
+  b.appendChild(Object.assign(document.createElement('div'),
+    {className:'prov-tag',textContent:'🏥 Triage Engine'}));
+
+  d.appendChild(av); d.appendChild(b);
+  chat.appendChild(d); scroll();
+}
+
+function addBlocked(text, layer, action, risk=1){
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  const av = document.createElement('div');
+  av.className = 'av';
+  av.textContent = action==='redirect'?'💛':'🛡️';
+  av.style.background = action==='redirect'?'#f39c12':'#c0392b';
+  const b = document.createElement('div');
+  b.className = `bubble ${action==='redirect'?'redirect':'blocked'}`;
+  const tag = document.createElement('div');
+  tag.className = `fw-tag ${action==='redirect'?'redirect':'block'}`;
+  tag.textContent = action==='redirect'
+    ? '⚠️ SUPPORT RESOURCE'
+    : `🛡️ BLOCKED: ${layer}`;
+  b.appendChild(tag);
+  const txt = document.createElement('div');
+  txt.innerHTML = fmt(text);
+  b.appendChild(txt);
+  if(risk>0){
+    const rm=document.createElement('div');
+    rm.className='risk-meter';
+    rm.innerHTML=`<span>Risk</span>
+      <div class="risk-bar"><div class="risk-fill" style="width:${Math.round(risk*100)}%;background:#e74c3c"></div></div>
+      <span>${Math.round(risk*100)}%</span>`;
+    b.appendChild(rm);
+  }
+  d.appendChild(av); d.appendChild(b);
+  chat.appendChild(d); scroll();
+}
+
+function addWarning(text){
+  const last = chat.lastElementChild;
+  if(!last) return;
+  const w = document.createElement('div');
+  w.className='warn-banner'; w.textContent=text;
+  last.querySelector('.bubble')?.appendChild(w);
+}
+
+function showTyping(){
+  const id='t'+Date.now();
+  const d=document.createElement('div');
+  d.className='msg bot'; d.id=id;
+  d.innerHTML=`<div class="av" style="background:var(--blue)">🏥</div>
+    <div class="bubble"><div class="typing">
+      <div class="td"></div><div class="td"></div><div class="td"></div>
+    </div></div>`;
+  chat.appendChild(d); scroll(); return id;
+}
+function removeTyping(id){const e=document.getElementById(id);if(e)e.remove();}
+
+function fmt(text){
+  if(!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^[-•] (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/gs,m=>`<ul>${m}</ul>`)
+    .replace(/\n{2,}/g,'</p><p>')
+    .replace(/\n/g,'<br>')
+    .replace(/^(.+)$/,'<p>$1</p>');
+}
+
+async function clearChat(){
+  if(!confirm('Clear conversation?')) return;
+  await fetch('/api/clear',{method:'POST'});
+  chat.innerHTML='';
+  chat.appendChild(welcome);
+  welcome.style.display='block';
+  first=true;
+}
+
+function scroll(){ chat.scrollTop = chat.scrollHeight; }
+inp.focus();
+</script>
+</body>
+</html>
