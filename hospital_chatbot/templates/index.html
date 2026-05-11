@@ -358,7 +358,7 @@ function addBlocked(text, layer, action, risk=1){
   tag.className = `fw-tag ${action==='redirect'?'redirect':'block'}`;
   tag.textContent = action==='redirect'
     ? '⚠️ SUPPORT RESOURCE'
-    : `🛡️ BLOCKED: ${layer}`;
+    : '🛡️ Blocked: Prompt Injection Detected';
   b.appendChild(tag);
   const txt = document.createElement('div');
   txt.innerHTML = fmt(text);
